@@ -226,16 +226,16 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             }
 
             @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
-                        String encrypted = AESUtils.encrypt(cipher, password);
-                        config.setPasswordEncrypted(encrypted);
-                        config.setPasswordIV(AESUtils.byte2hex(cipher.getIV()));
+            public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
+                super.onSucceed(target, cipher);
+                NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
+                config.setPasswordEncrypted(AESUtils.encrypt(cipher, password));
+                config.setPasswordIV(AESUtils.byte2hex(cipher.getIV()));
+                config.commit();
 
-                        passwordInputDialog.dismiss();
-                        fingerprintVerificationDialog.dismiss();
-                    }
+                passwordInputDialog.dismiss();
+                fingerprintVerificationDialog.dismiss();
+            }
 
             @Override
             public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {

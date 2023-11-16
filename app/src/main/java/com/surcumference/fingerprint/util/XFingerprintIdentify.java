@@ -102,7 +102,7 @@ public class XFingerprintIdentify {
                         return;
                     }
                     if (fingerprintScanStateReady) {
-                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended));
+                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended) + " " + failInfo);
                     }
                     L.d("多次尝试错误，请确认指纹", failInfo);
                     identifyListener.onFailed(XFingerprintIdentify.this, failInfo);
