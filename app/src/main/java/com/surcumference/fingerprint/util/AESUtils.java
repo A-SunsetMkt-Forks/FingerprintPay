@@ -1,5 +1,8 @@
 package com.surcumference.fingerprint.util;
 
+import android.util.Log;
+
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.util.log.L;
 
 import java.io.UnsupportedEncodingException;
@@ -41,6 +44,7 @@ public static byte[] encrypt(Cipher cipher, byte[] content) {
         return cipher.doFinal(content);
     } catch (Exception e) {
         L.e(e);
+        Toaster.showLong("加密失败了, 请截图发送给开发者" + Log.getStackTraceString(e));
     }
     return null;
 }

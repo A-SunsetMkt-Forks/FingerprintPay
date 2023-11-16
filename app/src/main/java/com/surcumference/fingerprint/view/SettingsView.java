@@ -202,8 +202,9 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         }).showInDialog();
     }
 
-    private void updatePassword(DialogInterface passwordInputDialog, String password) {
+    private void updatePassword(DialogInterface passwordInputDialog, final String password) {
         Context context = this.getContext();
+        Toaster.show("password1:" + password);
         Config config = Config.from(context);
         XFingerprintIdentify fingerprintIdentify = new XFingerprintIdentify(context)
                 .withEncryptionMode();
@@ -220,6 +221,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             @Override
             public void onInited(XFingerprintIdentify identify) {
                 super.onInited(identify);
+                Toaster.show("password3:" + password);
                 if (identify.isUsingBiometricApi()) {
                     ViewUtils.setAlpha(fingerprintVerificationDialog, 0);
                 }
@@ -228,6 +230,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             @Override
             public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
                 super.onSucceed(target, cipher);
+                Toaster.show("password2:" + password);
                 NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
                 config.setPasswordEncrypted(AESUtils.encrypt(cipher, password));
                 config.setPasswordIV(AESUtils.byte2hex(cipher.getIV()));
