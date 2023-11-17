@@ -32,6 +32,7 @@ import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.Umeng;
 import com.surcumference.fingerprint.util.bugfixer.TagManagerBugFixer;
 import com.surcumference.fingerprint.view.DonateView;
+import com.surcumference.fingerprint.view.SettingsView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +104,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onResume() {
         super.onResume();
         Umeng.onResume(this);
+        new SettingsView(this).showInDialog();
     }
 
     @Override

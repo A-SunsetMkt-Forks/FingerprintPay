@@ -8,7 +8,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 33
         versionCode 30
-        versionName "4.99.2"
+        versionName "4.99.3"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"FingerprintPay\""
     }
 
