@@ -37,8 +37,10 @@ import com.surcumference.fingerprint.util.log.L;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.crypto.Cipher;
 
@@ -234,7 +236,8 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 super.onSucceed(target, cipher);
                 NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
                 config.setPasswordEncrypted(AESUtils.encrypt(cipher, password));
-                config.setPasswordIV(AESUtils.byte2hex(cipher.getIV()));
+                byte[] iv = cipher.getIV();
+                config.setPasswordIV(AESUtils.byte2hex(iv != null ? iv : ("-fallback-place-holder-" + UUID.randomUUID()).getBytes(StandardCharsets.UTF_8)));
                 config.commit();
 
                 passwordInputDialog.dismiss();
