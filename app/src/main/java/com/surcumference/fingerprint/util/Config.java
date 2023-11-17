@@ -79,6 +79,10 @@ public class Config {
     }
 
     public void setPasswordIV(String iv) {
+        if (TextUtils.isEmpty(iv)) {
+            mCache.sharedPreferences.edit().remove("password_iv").apply();
+            return;
+        }
         String enc = AESUtils.encrypt(iv, String.valueOf(mCache.passwordEncKey));
         mCache.sharedPreferences.edit().putString("password_iv", enc).apply();
     }
