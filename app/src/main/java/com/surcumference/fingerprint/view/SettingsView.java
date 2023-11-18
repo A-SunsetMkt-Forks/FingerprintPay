@@ -26,23 +26,18 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
-import com.surcumference.fingerprint.util.AESUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
-import javax.crypto.Cipher;
 
 /**
  * Created by Jason on 2017/9/9.
@@ -193,6 +188,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             passwordInputView.setDefaultText(DEFAULT_HIDDEN_PASS);
         }
         passwordInputView.withOnPositiveButtonClickListener((dialog, which) -> {
+            passwordInputView.hideInputMethod();
             String inputText = passwordInputView.getInput();
             if (TextUtils.isEmpty(inputText)) {
                 config.setPasswordEncrypted("");
@@ -211,9 +207,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     private void updatePassword(DialogInterface passwordInputDialog, final String password) {
         Context context = this.getContext();
         Config config = Config.from(context);
-        XFingerprintIdentify fingerprintIdentify = new XFingerprintIdentify(context)
-                .withEncryptionMode();
-
+        BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
         AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
                 .withOnCloseImageClickListener((target, v) -> {
             target.getDialog().dismiss();
@@ -221,10 +215,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         }).withOnDismissListener(v -> {
             fingerprintIdentify.cancelIdentify();
         }).showInDialog();
-        fingerprintIdentify.startIdentify(new XFingerprintIdentify.IdentifyListener() {
+        fingerprintIdentify.encryptPasscode(password, new BizBiometricIdentify.IdentifyListener() {
 
             @Override
-            public void onInited(XFingerprintIdentify identify) {
+            public void onInited(BizBiometricIdentify identify) {
                 super.onInited(identify);
                 if (identify.isUsingBiometricApi()) {
                     ViewUtils.setAlpha(fingerprintVerificationDialog, 0);
@@ -232,20 +226,15 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             }
 
             @Override
-            public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                super.onSucceed(target, cipher);
-                NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
-                config.setPasswordEncrypted(AESUtils.encrypt(cipher, password));
-                byte[] iv = cipher.getIV();
-                config.setPasswordIV(AESUtils.byte2hex(iv != null ? iv : ("-fallback-place-holder-" + UUID.randomUUID()).getBytes(StandardCharsets.UTF_8)));
-                config.commit();
-
+            public void onEncryptionSuccess(BizBiometricIdentify identify, @NonNull String encryptedContent, @Nullable byte[] encryptedIV) {
+                super.onEncryptionSuccess(identify, encryptedContent, encryptedIV);
+                Task.onMain(456, () -> NotifyUtils.notifyBiometricIdentify(context, Lang.getString(R.id.toast_fingerprint_password_enc_success)));
                 passwordInputDialog.dismiss();
                 fingerprintVerificationDialog.dismiss();
             }
 
             @Override
-            public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+            public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                 super.onFailed(target, failInfo);
                 ViewUtils.setAlpha(fingerprintVerificationDialog, 1);
                 ViewUtils.setDimAmount(fingerprintVerificationDialog, 0.6f);

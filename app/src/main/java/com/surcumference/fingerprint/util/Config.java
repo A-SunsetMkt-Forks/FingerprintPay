@@ -34,7 +34,7 @@ public class Config {
         if (mCache == null) {
             SharedPreferences sharedPreferences = context.getSharedPreferences(BuildConfig.APPLICATION_ID + ".settings", Context.MODE_PRIVATE);
             String deviceId = Settings.System.getString(context.getContentResolver(), Settings.System.ANDROID_ID);
-            int passwordEncKey = deviceId.hashCode();
+            int passwordEncKey = String.valueOf(deviceId).hashCode();
             SharedPreferences mainAppSharePreference;
             try {
                 mainAppSharePreference = XPreferenceProvider.getRemoteSharedPreference(context);
