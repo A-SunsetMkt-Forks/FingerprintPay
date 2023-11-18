@@ -66,6 +66,9 @@ public class XBiometricIdentify<T extends XBiometricIdentify>{
     }
 
     public T startIdentify(IdentifyListener identifyListener) {
+        XBiometricIdentifyManager xBiometricIdentifyManager =  XBiometricIdentifyManager.INSTANCE;
+        xBiometricIdentifyManager.cancelFingerprintIdentify();
+        xBiometricIdentifyManager.set(this);
         int cipherMode = fingerprintIdentify.getCipherMode();
         if (cipherMode == Cipher.ENCRYPT_MODE) {
         } else if (cipherMode == Cipher.DECRYPT_MODE) {
@@ -96,6 +99,7 @@ public class XBiometricIdentify<T extends XBiometricIdentify>{
             @Override
             public void onSucceed(@Nullable Cipher cipher) {
                 try {
+                    xBiometricIdentifyManager.set(null);
                     String encryptedOrDecryptedContent = null;
                     for (int i = 0; i < 2; i++) {
                         if (cipher != null) {
@@ -134,6 +138,7 @@ public class XBiometricIdentify<T extends XBiometricIdentify>{
             @Override
             public void onFailed(FingerprintIdentifyFailInfo failInfo) {
                 try {
+                    xBiometricIdentifyManager.set(null);
                     if (failInfo.throwable instanceof java.security.InvalidAlgorithmParameterException) {
                         onNotify(NotifyEnum.OnDecryptionFailed);
                         identifyListener.onFailed(XBiometricIdentify.this, failInfo);
@@ -156,6 +161,7 @@ public class XBiometricIdentify<T extends XBiometricIdentify>{
             @Override
             public void onStartFailedByDeviceLocked() {
                 try {
+                    xBiometricIdentifyManager.set(null);
                     // 第一次调用startIdentify失败，因为设备被暂时锁定
                     L.d("系统限制，重启后必须验证密码后才能使用指纹验证");
                     onNotify(NotifyEnum.OnBiometricLocked);

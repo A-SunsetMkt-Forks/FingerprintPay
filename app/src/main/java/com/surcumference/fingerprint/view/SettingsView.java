@@ -159,7 +159,11 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                     }).showInDialog();
             } else {
                 if (!data.selectionState && !checkPasswordAndNotify(context)) {
-                    showUpdatePasswordViewDialog();
+                    showUpdatePasswordViewDialog(() -> {
+                        data.selectionState = !data.selectionState;
+                        config.setOn(data.selectionState);
+                        mListAdapter.notifyDataSetChanged();
+                    });
                     return;
                 }
                 data.selectionState = !data.selectionState;
@@ -181,6 +185,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     }
 
     private void showUpdatePasswordViewDialog() {
+        showUpdatePasswordViewDialog(null);
+    }
+
+    private void showUpdatePasswordViewDialog(@Nullable Runnable onSuccess) {
         Context context = getContext();
         Config config = Config.from(context);
         PasswordInputView passwordInputView = new PasswordInputView(context);
@@ -200,11 +208,12 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 dialog.dismiss();
                 return;
             }
-            updatePassword(dialog, inputText);
+            updatePassword(dialog, inputText, onSuccess);
         }).showInDialog();
     }
 
-    private void updatePassword(DialogInterface passwordInputDialog, final String password) {
+    private void updatePassword(DialogInterface passwordInputDialog, final String password,
+                                @Nullable Runnable onSuccess) {
         Context context = this.getContext();
         BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
         AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
@@ -230,6 +239,9 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 Task.onMain(456, () -> NotifyUtils.notifyBiometricIdentify(context, Lang.getString(R.id.toast_fingerprint_password_enc_success)));
                 passwordInputDialog.dismiss();
                 fingerprintVerificationDialog.dismiss();
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
             }
 
             @Override
@@ -246,7 +258,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     private boolean checkPasswordAndNotify(Context context) {
         String pwd = Config.from(context).getPasswordEncrypted();
         if (TextUtils.isEmpty(pwd)) {
-            Toaster.showLong(Lang.getString(R.id.toast_password_not_set_switch_on_failed));
+            Task.onMain(400, () -> Toaster.showLong(Lang.getString(R.id.toast_password_not_set_switch_on_failed)));
             return false;
         }
         return true;

@@ -83,9 +83,8 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                                                     boolean smallPayDialogFloating, String passwordEncrypted,
                                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback,
                                                     final Runnable onFailureUnlockCallback) {
+        cancelFingerprintIdentify();
         mFingerprintIdentify = new BizBiometricIdentify(context)
-                // 仅大支付框可用, 小支付框冲突严重
-                .withUseBiometricApi(!smallPayDialogFloating && config.isUseBiometricApi())
                 .withMockCurrentUserCallback(this)
                 .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
 
@@ -311,10 +310,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
             mInputEditText.requestFocus();
             mInputEditText.performClick();
-            XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
-            if (fingerprintIdentify != null) {
-                fingerprintIdentify.cancelIdentify();
-            }
+            cancelFingerprintIdentify();
             mMockCurrentUser = false;
             if (titleTextView != null) {
                 titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
@@ -426,10 +422,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             } else {
                 if (fingerPrintLayout.getVisibility() != View.GONE) {
                     fingerPrintLayout.setVisibility(View.GONE);
-                    XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
-                    if (fingerprintIdentify != null) {
-                        fingerprintIdentify.cancelIdentify();
-                    }
+                    cancelFingerprintIdentify();
                 }
             }
             nodeInfo.recycle();
@@ -495,10 +488,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     protected void onPayDialogDismiss(Context context) {
         L.d("PayDialog dismiss");
         if (Config.from(context).isOn()) {
-            XBiometricIdentify fingerPrintIdentify = mFingerprintIdentify;
-            if (fingerPrintIdentify != null) {
-                fingerPrintIdentify.cancelIdentify();
-            }
+            cancelFingerprintIdentify();
             mMockCurrentUser = false;
         }
     }
@@ -509,6 +499,18 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             activityViewObserver.stop();
             mActivityViewObserver = null;
         }
+    }
+
+    private void cancelFingerprintIdentify() {
+        L.d("cancelFingerprintIdentify");
+        XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
+        if (fingerprintIdentify == null) {
+            return;
+        }
+        if (!fingerprintIdentify.fingerprintScanStateReady) {
+            return;
+        }
+        fingerprintIdentify.cancelIdentify();
     }
 
     protected void doSettingsMenuInject(final Activity activity) {
