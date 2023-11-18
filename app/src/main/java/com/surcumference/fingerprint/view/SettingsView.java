@@ -206,7 +206,6 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
 
     private void updatePassword(DialogInterface passwordInputDialog, final String password) {
         Context context = this.getContext();
-        Config config = Config.from(context);
         BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
         AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
                 .withOnCloseImageClickListener((target, v) -> {
