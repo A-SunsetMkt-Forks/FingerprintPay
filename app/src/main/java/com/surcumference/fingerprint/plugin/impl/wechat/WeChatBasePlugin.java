@@ -330,9 +330,12 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                 if (fingerPrintLayoutLast != null) {
                     passwordLayout.removeView(fingerPrintLayoutLast);
                 }
-                fingerPrintLayout.setVisibility(View.GONE);
+                // 禁止修改, 会导致layoutListener 再次调用 switchToFingerprintRunnable
+                // onPayDialogShown 调用 initFingerPrintLock
+                // switchToFingerprintRunnable 调用 initFingerPrintLock 导致 onFailed 调用 switchToPasswordRunnable
+                // switchToPasswordRunnable 调用 cancelFingerprintIdentify cancel 掉当前, 最终导致全部指纹识别取消
+                // fingerPrintLayout.setVisibility(View.GONE);
                 passwordLayout.addView(fingerPrintLayout);
-                passwordLayout.post(() -> fingerPrintLayout.setVisibility(View.VISIBLE));
                 // ensure image icon visibility
                 Task.onMain(1000, fingerPrintLayout::requestLayout);
                 passwordLayout.setClipChildren(false);
@@ -502,7 +505,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     private void cancelFingerprintIdentify() {
-        L.d("cancelFingerprintIdentify");
+        L.d("cancelFingerprintIdentify", new Exception());
         XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
         if (fingerprintIdentify == null) {
             return;
@@ -511,6 +514,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             return;
         }
         fingerprintIdentify.cancelIdentify();
+        mFingerprintIdentify = null;
     }
 
     protected void doSettingsMenuInject(final Activity activity) {
