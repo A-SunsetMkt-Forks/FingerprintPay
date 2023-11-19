@@ -59,6 +59,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
@@ -451,6 +452,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             keyboardViewParams.height = 2;
             inputEditText.requestFocus();
             inputEditText.post(() -> {
+                int i = 0;
                 for (char c : pwd.toCharArray()) {
                     String[] keyIds = digitPasswordKeyPad.keys.get(String.valueOf(c));
                     if (keyIds == null) {
@@ -458,7 +460,8 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                     }
                     View digitView = ViewUtils.findViewByName(keyboardView, context.getPackageName(), keyIds);
                     if (digitView != null) {
-                        ViewUtils.performActionClick(digitView);
+                        int time = ThreadLocalRandom.current().nextInt(200, 300 + 1);
+                        Task.onMain(i++ * time, () -> ViewUtils.performActionClick(digitView));
                     }
                 }
                 // inputEditText.setVisibility(View.VISIBLE); 副作用反制
